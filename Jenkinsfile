@@ -19,6 +19,6 @@ node("master")
 
         echo "Create a new branch with name release_${BN} ..."
         def W_GIT_HOME = tool 'Git'
-        bat "${W_GIT_HOME} checkout -b release_${BN}"
+        sh "${W_GIT_HOME} checkout -b release_${BN}"
     }    
 }
