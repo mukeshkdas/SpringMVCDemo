@@ -15,6 +15,6 @@ node("master")
 
         echo 'Change the project version ...'
         def W_M2_HOME = tool 'Maven'
-        sh "${W_M2_HOME}\\bin\\mvn versions:set -DnewVersion=$BN -DgenerateBackupPoms=false"                
+        sh "${W_M2_HOME}/bin/mvn versions:set -DnewVersion=$BN -DgenerateBackupPoms=false"                
     }    
 }
