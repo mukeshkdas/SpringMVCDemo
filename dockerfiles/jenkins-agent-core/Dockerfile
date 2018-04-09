@@ -70,4 +70,4 @@ VOLUME "$USER_HOME_DIR/.m2"
 # SSH port
 EXPOSE 22
 
-CMD ["/usr/bin/mvn -version"]
+CMD ["/usr/bin/mvn", "-version"]
