@@ -39,6 +39,10 @@ RUN apt-get update && apt-get install -y openjdk-$JAVA_VERSION-jdk
 ENV JAVA_HOME /usr/lib/jvm/java-$JAVA_VERSION-openjdk-amd64/
 RUN export JAVA_HOME
 
+# Mukesh - Added Below
+RUN update-ca-certificates -f
+RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
+
 # Set user jenkins to the image
 RUN useradd -m -d /home/jenkins -s /bin/sh jenkins &&\
     echo "jenkins:jenkins" | chpasswd
