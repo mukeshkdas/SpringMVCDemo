@@ -20,5 +20,27 @@ node("master")
         echo "Create a new branch with name release_${BN} ..."
         def W_GIT_HOME = tool 'Git'
         sh "${W_GIT_HOME} checkout -b release_${BN}"
+
+        echo 'Stash the project source code ...'
+        stash includes: '**', excludes: '**/TestPlan.jmx', name: 'SOURCE_CODE'
     }    
 }
+
+node ("TestMachine-ut") {
+        // we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}
+        env.M2_HOME = '/usr/share/maven'
+        env.JAVA_HOME = '/usr'	 
+
+        stage('Run-ut') {           
+            echo 'Unstash the project source code ...'
+            unstash 'SOURCE_CODE'	                                                       
+                            
+            echo 'Run the unit tests (and Jacoco) ...'
+                sh "'${M2_HOME}/bin/mvn' clean test"   
+        }
+}
+
+
+    
+
+
