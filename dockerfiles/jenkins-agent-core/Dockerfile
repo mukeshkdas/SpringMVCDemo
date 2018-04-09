@@ -55,9 +55,15 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
     | tar -xzC /usr/share/maven --strip-components=1 \
   && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
+# Mukesh - Added Below
+RUN mkdir -p "$USER_HOME_DIR/.m2"
+
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 RUN export PATH="${MAVEN_HOME}/bin:${PATH}"
+
+# Mukesh - Added Below
+RUN chown -R jenkins:jenkins "$USER_HOME_DIR/.m2"
 
 VOLUME "$USER_HOME_DIR/.m2"
 
