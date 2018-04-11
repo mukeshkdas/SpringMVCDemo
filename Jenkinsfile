@@ -37,7 +37,7 @@ node ("TestMachine-ut") {
             unstash 'SOURCE_CODE'	                                                       
                             
             echo 'Run the unit tests (and Jacoco) ...'
-                sh "'${M2_HOME}/bin/mvn' clean test"   
+            sh "'${M2_HOME}/bin/mvn' clean test"   
         }
 }
 

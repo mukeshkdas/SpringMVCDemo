@@ -64,9 +64,9 @@ RUN mkdir -p "$USER_HOME_DIR/.m2"
 
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
-RUN export PATH="${MAVEN_HOME}/bin:${PATH}"
 
 # Mukesh - Added Below
+RUN export PATH="${MAVEN_HOME}/bin:${PATH}"
 RUN chown -R jenkins:jenkins "$USER_HOME_DIR/.m2"
 
 VOLUME "$USER_HOME_DIR/.m2"
@@ -74,4 +74,5 @@ VOLUME "$USER_HOME_DIR/.m2"
 # SSH port
 EXPOSE 22
 
+# Mukesh - Added Below
 CMD ["/usr/bin/mvn", "-version"]

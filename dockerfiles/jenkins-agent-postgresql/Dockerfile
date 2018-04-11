@@ -1,8 +1,9 @@
 FROM ubuntu:trusty
 
-MAINTAINER Docker Hub
+# MAINTAINER Docker Hub
 
-CMD ["sh", "adduser jenkins sudo"] 
+# Mukesh - Commented Below
+# CMD ["sh", "adduser jenkins sudo"] 
 
 # Set some variables	
 ARG MAVEN_VERSION=3.3.9
@@ -41,10 +42,17 @@ RUN apt-get update && apt-get install -y openjdk-$JAVA_VERSION-jdk
 ENV JAVA_HOME /usr/lib/jvm/java-$JAVA_VERSION-openjdk-amd64/
 RUN export JAVA_HOME
 
+# Mukesh - Added Below
+RUN update-ca-certificates -f
+RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
+
 # Set user jenkins to the image
 RUN useradd -m -d /home/jenkins -s /bin/sh jenkins &&\
     echo "jenkins:jenkins" | chpasswd
 RUN adduser jenkins sudo
+
+# Mukesh - Added Below
+RUN chown -R jenkins:jenkins /home/jenkins
 
 # Install curl
 RUN apt-get update && apt-get install -y curl git && apt-get clean && rm -rf /var/lib/apt/lists
@@ -55,8 +63,15 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
     | tar -xzC /usr/share/maven --strip-components=1 \
   && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
+# Mukesh - Added Below
+RUN mkdir -p "$USER_HOME_DIR/.m2"
+
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
+
+# Mukesh - Added Below
+RUN export PATH="${MAVEN_HOME}/bin:${PATH}"
+RUN chown -R jenkins:jenkins "$USER_HOME_DIR/.m2"
 
 VOLUME "$USER_HOME_DIR/.m2"
 
@@ -96,3 +111,6 @@ RUN sudo /etc/init.d/postgresql start && \
 	sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';" && \
     sudo -u postgres psql -c "CREATE USER oak WITH SUPERUSER PASSWORD 'oakpwd';" && \
 	sudo -u postgres createdb -O oak oakdb
+
+# Mukesh - Added Below
+CMD ["/usr/bin/mvn", "-version"]
