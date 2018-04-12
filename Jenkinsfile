@@ -51,8 +51,8 @@ parallel UnitTests:{
                 echo 'Stash Jacoco-ut exec ...'
                 stash includes: '**/target/jacoco.exec', name: 'JACOCO_UT' 
             
-                // echo 'jUnit report (surefire) ...'
-                // junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                 echo 'jUnit report (surefire) ...'
+                 junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                 // currentBuild.result='SUCCESS'
             }
     }
@@ -82,8 +82,8 @@ IntegrationTests:{
                 echo 'Stash Jacoco-it exec ...'
                 stash includes: '**/target/jacoco-it.exec', name: 'JACOCO_IT'
             
-                // echo 'jUnit report (failsafe) ...'
-                // junit allowEmptyResults: true, testResults: '**/target/failsafe-reports/*.xml'          
+                 echo 'jUnit report (failsafe) ...'
+                 junit allowEmptyResults: true, testResults: '**/target/failsafe-reports/*.xml'          
             }
     }
 },
