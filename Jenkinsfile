@@ -8,8 +8,8 @@ node("master")
     ])
 
     stage("Provision"){
+        
         echo 'PIPELINE STARTED'
-
         echo "checkout source code from GitHub......"
         git credentialsId: 'JenkinsSSH', url: 'git@github.com:mukeshkdas/SpringMVCDemo.git'
 
@@ -36,8 +36,26 @@ node ("TestMachine-ut") {
             echo 'Unstash the project source code ...'
             unstash 'SOURCE_CODE'	                                                       
                             
-            echo 'Run the unit tests (and Jacoco) ...'
+            echo 'Run the unit tests ...'
             sh "'${M2_HOME}/bin/mvn' clean test"   
+        }
+}
+
+node ("TestMachine-it") {
+        // we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}        
+        env.M2_HOME = '/usr/share/maven'
+        env.JAVA_HOME = '/usr'
+       
+        stage('Run-it') {
+        
+            echo 'Unstash the project source code ...'
+            unstash 'SOURCE_CODE'
+		
+            echo 'Start postgresql ...'
+            sh 'echo jenkins | sudo -S /etc/init.d/postgresql start'
+                        
+            echo 'Run the integration tests ...'
+            sh "'${M2_HOME}/bin/mvn' clean verify -DskipUTs=true"            
         }
 }
 
