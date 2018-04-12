@@ -26,38 +26,43 @@ node("master")
     }    
 }
 
-node ("TestMachine-ut") {
-        //echo 'Hello TestMachine-ut ...'
-        //we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}
-        env.M2_HOME = '/usr/share/maven'
-        env.JAVA_HOME = '/usr'	 
+parallel UnitTests:{
+    node ("TestMachine-ut") {
+            //echo 'Hello TestMachine-ut ...'
+            //we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}
+            env.M2_HOME = '/usr/share/maven'
+            env.JAVA_HOME = '/usr'	 
 
-        stage('Run-ut') {           
-            echo 'Unstash the project source code ...'
-            unstash 'SOURCE_CODE'	                                                       
-                            
-            echo 'Run the unit tests ...'
-            sh "'${M2_HOME}/bin/mvn' clean test"   
-        }
-}
-
-node ("TestMachine-it") {
-        // we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}        
-        env.M2_HOME = '/usr/share/maven'
-        env.JAVA_HOME = '/usr'
-       
-        stage('Run-it') {
+            stage('Run-ut') {           
+                echo 'Unstash the project source code ...'
+                unstash 'SOURCE_CODE'	                                                       
+                                
+                echo 'Run the unit tests ...'
+                sh "'${M2_HOME}/bin/mvn' clean test"   
+            }
+    }
+},
+IntegrationTests:{
+    node ("TestMachine-it") {
+            // we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}        
+            env.M2_HOME = '/usr/share/maven'
+            env.JAVA_HOME = '/usr'
         
-            echo 'Unstash the project source code ...'
-            unstash 'SOURCE_CODE'
-		
-            echo 'Start postgresql ...'
-            sh 'echo jenkins | sudo -S /etc/init.d/postgresql start'
-                        
-            echo 'Run the integration tests ...'
-            sh "'${M2_HOME}/bin/mvn' clean verify -DskipUTs=true"            
-        }
-}
+            stage('Run-it') {
+            
+                echo 'Unstash the project source code ...'
+                unstash 'SOURCE_CODE'
+            
+                echo 'Start postgresql ...'
+                sh 'echo jenkins | sudo -S /etc/init.d/postgresql start'
+                            
+                echo 'Run the integration tests ...'
+                sh "'${M2_HOME}/bin/mvn' clean verify -DskipUTs=true"            
+            }
+    }
+},
+failFast: true
+
 
 
     
