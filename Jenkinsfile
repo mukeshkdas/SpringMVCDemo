@@ -139,19 +139,19 @@ node ("TestMachine-ut") {
                     healthy: '', pattern: '**/target/pmd.xml', unHealthy: ''])            
         }
     },
-    // TaskScanner:{
-    //     stage('TaskScanner'){
-    //         echo 'Running TaskRunner ...'
-    //         step([$class: 'TasksPublisher', canComputeNew: false, defaultEncoding: '', 
-    //                 excludePattern: '', healthy: '', high: 'TODO,TO DO,FIXME', low: '', normal: '', pattern: '**/*.java', unHealthy: ''])
-    //     }
-    // },
+    TaskScanner:{
+        stage('TaskScanner'){
+            echo 'Running TaskRunner ...'
+            step([$class: 'TasksPublisher', canComputeNew: false, defaultEncoding: '', 
+                    excludePattern: '', healthy: '', high: 'TODO,TO DO,FIXME', low: '', normal: '', pattern: '**/*.java', unHealthy: ''])
+        }
+    },
     failFast: false
 	
-    // stage('CombinedAnalysis'){
-    //     echo 'Running Analysis publisher ...'
-    //     step([$class: 'AnalysisPublisher', canComputeNew: false, defaultEncoding: '', healthy: '', unHealthy: ''])
-    // }
+    stage('CombinedAnalysis'){
+        echo 'Running Analysis publisher ...'
+        step([$class: 'AnalysisPublisher', canComputeNew: false, defaultEncoding: '', healthy: '', unHealthy: ''])
+    }
 }
 
     
