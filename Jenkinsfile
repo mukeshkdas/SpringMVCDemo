@@ -142,8 +142,10 @@ node ("TestMachine-ut") {
     TaskScanner:{
         stage('TaskScanner'){
             echo 'Running TaskRunner ...'
-            step([$class: 'TasksPublisher', canComputeNew: false, defaultEncoding: '', 
-                    excludePattern: '', healthy: '', high: 'TODO,TO DO,FIXME', low: '', normal: '', pattern: '**/*.java', unHealthy: ''])
+            // step([$class: 'TasksPublisher', canComputeNew: false, defaultEncoding: '', 
+            //         excludePattern: '', healthy: '', high: 'TODO,TO DO,FIXME', low: '', normal: '', pattern: '**/*.java', unHealthy: ''])
+
+            openTasks canComputeNew: false, defaultEncoding: '', excludePattern: '', healthy: '', high: 'TODO,TO DO,FIXME', low: '', normal: '', pattern: '**/*.java', unHealthy: ''
         }
     },
     failFast: false
