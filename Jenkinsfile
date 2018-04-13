@@ -89,7 +89,70 @@ IntegrationTests:{
 },
 failFast: true
 
+node ("TestMachine-ut") {
+    
+    // we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}
+    env.MAVEN_HOME = '/usr/share/maven'
+    env.M2_HOME = '/usr/share/maven'
+    env.JAVA_HOME = '/usr'
+    
+    // echo 'Preparing Artifactory to resolve dependencies ...'          
+    // def server = Artifactory.server('artifactory')       
+    // def rtMaven = Artifactory.newMavenBuild()
+    // rtMaven.opts = '-Xms1024m -Xmx4096m'
+    // rtMaven.resolver server: server, releaseRepo: 'virtual-repo', snapshotRepo: 'virtual-repo'
+    
+    stage('SCA') {
+        echo 'Unstash the project source code ...'
+        unstash 'SOURCE_CODE'
 
+        echo 'Executing Maven test-compile ...'
+         sh "'${M2_HOME}/bin/mvn' clean test-compile"
+        //rtMaven.run pom: 'pom.xml', goals: 'clean test-compile'
+    }    
+    
+    parallel Findbugs:{
+        stage('Findbugs') {    
+            echo 'Running Findbugs ...'
+            sh "'${M2_HOME}/bin/mvn' findbugs:findbugs"
+            //rtMaven.run pom: 'pom.xml', goals: 'findbugs:findbugs'
+            step([$class: 'FindBugsPublisher', canComputeNew: false, defaultEncoding: '', 
+                    excludePattern: '', healthy: '', includePattern: '', pattern: '**/target/findbugsXml.xml', unHealthy: ''])
+            
+        }
+    },
+    Checkstyle:{
+        stage('Checkstyle') {            
+            echo 'Running Checkstyle ...'
+            sh "'${M2_HOME}/bin/mvn' checkstyle:check"
+            //rtMaven.run pom: 'pom.xml', goals: 'checkstyle:check'
+            step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', 
+                    healthy: '', pattern: '**/target/checkstyle-result.xml', unHealthy: ''])            
+        }
+    },
+    Pmd:{
+        stage('Pmd') {         
+            echo 'Running PMD ...'		
+            sh "'${M2_HOME}/bin/mvn' pmd:pmd"
+            // rtMaven.run pom: 'pom.xml', goals: 'pmd:pmd'
+            step([$class: 'PmdPublisher', canComputeNew: false, defaultEncoding: '', 
+                    healthy: '', pattern: '**/target/pmd.xml', unHealthy: ''])            
+        }
+    },
+    // TaskScanner:{
+    //     stage('TaskScanner'){
+    //         echo 'Running TaskRunner ...'
+    //         step([$class: 'TasksPublisher', canComputeNew: false, defaultEncoding: '', 
+    //                 excludePattern: '', healthy: '', high: 'TODO,TO DO,FIXME', low: '', normal: '', pattern: '**/*.java', unHealthy: ''])
+    //     }
+    // },
+    failFast: false
+	
+    // stage('CombinedAnalysis'){
+    //     echo 'Running Analysis publisher ...'
+    //     step([$class: 'AnalysisPublisher', canComputeNew: false, defaultEncoding: '', healthy: '', unHealthy: ''])
+    // }
+}
 
     
 
