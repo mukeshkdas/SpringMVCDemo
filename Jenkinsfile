@@ -173,7 +173,7 @@ node("TestMachine-so") {
     stage ("Prepare-Sonar") {        
         echo 'Ping SonarQube ...'
         try{
-            retry(5) {
+            retry(10) {
                 sh script: 'echo jenkins | sudo -S nc -zv localhost 9000 && echo jenkins | sudo -S nc -zv localhost 9092'
             }
         } catch (error) {
@@ -181,7 +181,7 @@ node("TestMachine-so") {
             sh 'echo jenkins | sudo -S /opt/sonarqube/bin/linux-x86-64/sonar.sh start'
         } 
         
-        timeout(time: 240, unit: 'SECONDS') {
+        timeout(time: 600, unit: 'SECONDS') {
             waitUntil {
                 echo 'Waiting for SonarQube to start ...'
                 def result = sh script: 'echo jenkins | sudo -S netstat -tulnp | egrep \'9000|9092\'', returnStatus: true
