@@ -1,6 +1,6 @@
 FROM ubuntu:trusty
 
-# MAINTAINER Docker Hub
+MAINTAINER Mukesh Das
 
 # Mukesh - Commented Below
 # CMD ["sh", "adduser jenkins sudo"] 
