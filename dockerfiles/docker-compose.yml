@@ -1,10 +1,10 @@
 jenkinsdata:
  build: jenkins-data
 jenkinsmaster:
- build: jenkins-master
+ build: jenkins-master 
  volumes_from:
   - jenkinsdata
- ports:
+ ports: 
   - "50000:50000"  
 jenkinsnginx:
  build: jenkins-nginx
