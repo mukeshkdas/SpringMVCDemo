@@ -71,3 +71,11 @@ ssh-slaves
 email-ext
 cobertura
 config-file-provider
+docker
+jacoco
+pmd
+findbugs
+checkstyle
+tasks
+analysis-collector
+versionnumber

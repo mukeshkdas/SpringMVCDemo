@@ -156,7 +156,53 @@ node ("TestMachine-ut") {
     }
 }
 
-node("TestMachine-so") {
+// node("TestMachine-so") {
+    
+//     // we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}
+//     env.MAVEN_HOME = '/usr/share/maven'
+//     env.M2_HOME = '/usr/share/maven'
+//     env.JAVA_HOME = '/usr'
+    
+//     // echo 'Preparing Artifactory to resolve dependencies ...'          
+//     // def server = Artifactory.server('artifactory')       
+//     // def rtMaven = Artifactory.newMavenBuild()
+//     // rtMaven.opts = '-Xms1024m -Xmx4096m'
+//     // rtMaven.resolver server: server, releaseRepo: 'virtual-repo', snapshotRepo: 'virtual-repo'
+//     // rtMaven.deployer server: server, releaseRepo: 'snapshot-repo', snapshotRepo: 'snapshot-repo'
+    
+//     stage ("Prepare-Sonar") {        
+//         echo 'Ping SonarQube ...'
+//         try{
+//             retry(10) {
+//                 sh script: 'echo jenkins | sudo -S nc -zv localhost 9000 && echo jenkins | sudo -S nc -zv localhost 9092'
+//             }
+//         } catch (error) {
+//             sh 'echo Start SonarQube ...'
+//             sh 'echo jenkins | sudo -S /opt/sonarqube/bin/linux-x86-64/sonar.sh start'
+//         } 
+        
+//         timeout(time: 600, unit: 'SECONDS') {
+//             waitUntil {
+//                 echo 'Waiting for SonarQube to start ...'
+//                 def result = sh script: 'echo jenkins | sudo -S netstat -tulnp | egrep \'9000|9092\'', returnStatus: true
+//                 return (result == 0);
+//             }
+//         }
+//     } 
+    
+//     stage('Run-Sonar') {     
+//         echo 'Run sonar:sonar ...'
+	
+//         unstash 'SOURCE_CODE'           
+//         unstash 'JACOCO_UT'
+//         unstash 'JACOCO_IT'
+                
+//         sh "'${M2_HOME}/bin/mvn' test-compile sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dmaven.clean.skip=true" 
+//         // rtMaven.run pom: 'pom.xml', goals: 'test-compile sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dmaven.clean.skip=true'
+//     }    
+// }  
+
+node("TestMachine-ut") {
     
     // we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}
     env.MAVEN_HOME = '/usr/share/maven'
@@ -170,34 +216,34 @@ node("TestMachine-so") {
     // rtMaven.resolver server: server, releaseRepo: 'virtual-repo', snapshotRepo: 'virtual-repo'
     // rtMaven.deployer server: server, releaseRepo: 'snapshot-repo', snapshotRepo: 'snapshot-repo'
     
-    stage ("Prepare-Sonar") {        
-        echo 'Ping SonarQube ...'
-        try{
-            retry(10) {
-                sh script: 'echo jenkins | sudo -S nc -zv localhost 9000 && echo jenkins | sudo -S nc -zv localhost 9092'
-            }
-        } catch (error) {
-            sh 'echo Start SonarQube ...'
-            sh 'echo jenkins | sudo -S /opt/sonarqube/bin/linux-x86-64/sonar.sh start'
-        } 
+    // stage ("Prepare-Sonar") {        
+    //     echo 'Ping SonarQube ...'
+    //     try{
+    //         retry(10) {
+    //             sh script: 'echo jenkins | sudo -S nc -zv localhost 9000 && echo jenkins | sudo -S nc -zv localhost 9092'
+    //         }
+    //     } catch (error) {
+    //         sh 'echo Start SonarQube ...'
+    //         sh 'echo jenkins | sudo -S /opt/sonarqube/bin/linux-x86-64/sonar.sh start'
+    //     } 
         
-        timeout(time: 600, unit: 'SECONDS') {
-            waitUntil {
-                echo 'Waiting for SonarQube to start ...'
-                def result = sh script: 'echo jenkins | sudo -S netstat -tulnp | egrep \'9000|9092\'', returnStatus: true
-                return (result == 0);
-            }
-        }
-    } 
+    //     timeout(time: 600, unit: 'SECONDS') {
+    //         waitUntil {
+    //             echo 'Waiting for SonarQube to start ...'
+    //             def result = sh script: 'echo jenkins | sudo -S netstat -tulnp | egrep \'9000|9092\'', returnStatus: true
+    //             return (result == 0);
+    //         }
+    //     }
+    // } 
     
     stage('Run-Sonar') {     
         echo 'Run sonar:sonar ...'
 	
-        unstash 'SOURCE_CODE'           
-        unstash 'JACOCO_UT'
-        unstash 'JACOCO_IT'
+        // unstash 'SOURCE_CODE'           
+        // unstash 'JACOCO_UT'
+        // unstash 'JACOCO_IT'
                 
-        sh "'${M2_HOME}/bin/mvn' test-compile sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dmaven.clean.skip=true" 
+        sh "'${M2_HOME}/bin/mvn' test-compile sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -Dmaven.clean.skip=true" 
         // rtMaven.run pom: 'pom.xml', goals: 'test-compile sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dmaven.clean.skip=true'
     }    
 }  
