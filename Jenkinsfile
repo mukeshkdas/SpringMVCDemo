@@ -243,7 +243,7 @@ node("TestMachine-ut") {
         // unstash 'JACOCO_UT'
         // unstash 'JACOCO_IT'
                 
-        sh "'${M2_HOME}/bin/mvn' test-compile sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -Dmaven.clean.skip=true" 
+        sh "'${M2_HOME}/bin/mvn' test-compile sonar:sonar -Dsonar.host.url=http://139.59.90.202:9000 -Dmaven.clean.skip=true" 
         // rtMaven.run pom: 'pom.xml', goals: 'test-compile sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dmaven.clean.skip=true'
     }    
 }  
