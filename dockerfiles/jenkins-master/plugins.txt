@@ -80,3 +80,4 @@ tasks
 analysis-collector
 versionnumber
 artifactory
+performance

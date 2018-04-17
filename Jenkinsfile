@@ -1,13 +1,13 @@
+// change the project version (don't rely on version from pom.xml)
+env.BN = VersionNumber([
+    versionNumberString : '${BUILD_MONTH}.${BUILDS_TODAY}.${BUILD_NUMBER}', 
+    projectStartDate : '2018-04-07', 
+    versionPrefix : 'v1.'
+])
+
 node("master")
 {
-    // change the project version (don't rely on version from pom.xml)
-    env.BN = VersionNumber([
-        versionNumberString : '${BUILD_MONTH}.${BUILDS_TODAY}.${BUILD_NUMBER}', 
-        projectStartDate : '2018-04-07', 
-        versionPrefix : 'v1.'
-    ])
-
-    stage("Provision"){
+        stage("Provision"){
         
         echo 'PIPELINE STARTED'
         echo "checkout source code from GitHub......"
@@ -262,5 +262,76 @@ node("TestMachine-ut") {
       }
 }  
     
+node ("master") {
+    echo 'Stash the performance tests ...'
+    stash includes: '**/TestPlan.jmx', name: 'JMETER_TESTS' 
+}
+
+node("PfMachine-jm") {
+    
+    stage("Start-Payara") {     
+        echo 'Starting Payara server ...'
+        sh 'echo jenkins | sudo -S /opt/payara41/bin/asadmin start-domain'
+    }
+    
+    stage ("Download-WAR") {
+        echo 'Download the application WAR ...'
+        
+        def downloadWAR = """{
+            "files": [{
+                "pattern": "snapshot-repo/javaee/SpringMVCDemo/${BN}/*.war",
+                "target": "war/"
+            }]
+        }"""
+        
+        def server = Artifactory.server('artifactory')
+        server.download(downloadWAR)
+    }
+    
+    stage ("Deploy-WAR") {
+        echo 'Deploy the application WAR in Payara server ...'
+        sh "echo jenkins | sudo -S /opt/payara41/bin/asadmin deploy --contextroot '/SpringMVCDemo' ${WORKSPACE}/war/javaee/SpringMVCDemo/${BN}/SpringMVCDemo-${BN}.war"        
+    }
+    
+    stage ("Deploy-JMeter-Tests") {
+        echo 'Unstash JMeter tests ...'
+        unstash 'JMETER_TESTS'
+    }        
+    
+    stage ("Run-JMeter-Tests") {
+        echo 'Run the JMeter tests ...'
+        
+        sh "/opt/jmeter/bin/jmeter.sh -Jduration=600 -n -t ${WORKSPACE}/TestPlan.jmx -l ${WORKSPACE}/results.jtl"
+        performanceReport compareBuildPrevious: true, configType: 'ART', errorFailedThreshold: 0, errorUnstableResponseTimeThreshold: '', 
+        errorUnstableThreshold: 0, failBuildIfNoResultFile: false, ignoreFailedBuilds: true, ignoreUnstableBuilds: true, 
+        modeOfThreshold: false, modePerformancePerTestCase: true, modeThroughput: true, nthBuildNumber: 0, 
+        parsers: [[$class: 'JMeterParser', glob: "${WORKSPACE}/results.jtl"]], 
+        relativeFailedThresholdNegative: 0, relativeFailedThresholdPositive: 0, relativeUnstableThresholdNegative: 0, 
+        relativeUnstableThresholdPositive: 0
+    }
+    
+    stage("Promote to staging"){
+        echo 'Promoting application from SNAPSHOT to STAGING ...'
+        
+        def server = Artifactory.server('artifactory')
+        def promotionConfig = [
+            // Mandatory parameters
+        'buildName'          : 'project',
+        'buildNumber'        : BUILD_NUMBER,
+        'targetRepo'         : 'staging-repo',
+
+            // Optional parameters
+        'comment'            : 'Promoting to staging ....',
+        'sourceRepo'         : 'snapshot-repo',
+        'status'             : 'Staging',
+        'includeDependencies': false,
+        'copy'               : true,
+        'failFast'           : true
+        ]
+
+        // Promote build
+        server.promote promotionConfig
+    }
+}
 
 
