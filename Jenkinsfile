@@ -14,7 +14,7 @@ node("master")
         git credentialsId: 'JenkinsSSH', url: 'git@github.com:mukeshkdas/SpringMVCDemo.git'
 
         echo 'Change the project version ...'
-        def W_M2_HOME = tool 'Maven'
+        def W_M2_HOME = tool 'maven3'
         sh "${W_M2_HOME}/bin/mvn versions:set -DnewVersion=$BN -DgenerateBackupPoms=false"                
 
         echo "Create a new branch with name release_${BN} ..."
@@ -215,7 +215,7 @@ node("TestMachine-ut") {
     // rtMaven.opts = '-Xms1024m -Xmx4096m'
     // rtMaven.resolver server: server, releaseRepo: 'virtual-repo', snapshotRepo: 'virtual-repo'
     // rtMaven.deployer server: server, releaseRepo: 'snapshot-repo', snapshotRepo: 'snapshot-repo'
-    
+
     // stage ("Prepare-Sonar") {        
     //     echo 'Ping SonarQube ...'
     //     try{
@@ -247,6 +247,19 @@ node("TestMachine-ut") {
         // sh "'${M2_HOME}/bin/mvn' test-compile sonar:sonar -Dsonar.host.url=http://139.59.90.202:9000 -Dmaven.clean.skip=true" 
         // rtMaven.run pom: 'pom.xml', goals: 'test-compile sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dmaven.clean.skip=true'
     }    
+
+    stage("Publish-Snapshot") {        
+        echo 'Preparing Artifactory to resolve dependencies ...'         
+
+        def server = Artifactory.server('artifactory')       
+        def rtMaven = Artifactory.newMavenBuild()
+        rtMaven.opts = '-Xms1024m -Xmx4096m'    
+        rtMaven.deployer server: server, releaseRepo: 'snapshot-repo', snapshotRepo: 'snapshot-repo'
+        
+        echo 'Publish SNAPSHOT war ...'	              
+        def buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests'
+        server.publishBuildInfo buildInfo
+      }
 }  
     
 

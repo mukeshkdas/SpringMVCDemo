@@ -79,3 +79,4 @@ checkstyle
 tasks
 analysis-collector
 versionnumber
+artifactory
