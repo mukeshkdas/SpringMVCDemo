@@ -34,11 +34,11 @@ parallel UnitTests:{
             env.M2_HOME = '/usr/share/maven'
             env.JAVA_HOME = '/usr'	 
 
-            echo 'Preparing Artifactory to resolve dependencies ...'          
-            def server = Artifactory.server('artifactory')       
-            def rtMaven = Artifactory.newMavenBuild()
-            rtMaven.opts = '-Xms1024m -Xmx4096m'
-            rtMaven.resolver server: server, releaseRepo: 'virtual-repo', snapshotRepo: 'virtual-repo'
+            // echo 'Preparing Artifactory to resolve dependencies ...'          
+            // def server = Artifactory.server('artifactory')       
+            // def rtMaven = Artifactory.newMavenBuild()
+            // rtMaven.opts = '-Xms1024m -Xmx4096m'
+            // rtMaven.resolver server: server, releaseRepo: 'virtual-repo', snapshotRepo: 'virtual-repo'
 
             stage('Run-ut') {
                 try{		
@@ -50,8 +50,8 @@ parallel UnitTests:{
                     // sh "'${M2_HOME}/bin/mvn' clean test"   
 
                     echo 'Run the unit tests (and Jacoco) ...'
-                    //sh "'${M2_HOME}/bin/mvn' clean test-compile jacoco:prepare-agent test -Djacoco.destFile=target/jacoco.exec"   
-                    rtMaven.run pom: 'pom.xml', goals: 'clean test-compile jacoco:prepare-agent test -Djacoco.destFile=target/jacoco.exec'
+                    sh "'${M2_HOME}/bin/mvn' clean test-compile jacoco:prepare-agent test -Djacoco.destFile=target/jacoco.exec"   
+                    // rtMaven.run pom: 'pom.xml', goals: 'clean test-compile jacoco:prepare-agent test -Djacoco.destFile=target/jacoco.exec'
 
                     echo 'Run the Jacoco code coverage report for unit tests ...'
                     step([$class: 'JacocoPublisher', canComputeNew: false, defaultEncoding: '', healthy: '', 
