@@ -209,33 +209,6 @@ node("TestMachine-ut") {
     env.M2_HOME = '/usr/share/maven'
     env.JAVA_HOME = '/usr'
     
-    // echo 'Preparing Artifactory to resolve dependencies ...'          
-    // def server = Artifactory.server('artifactory')       
-    // def rtMaven = Artifactory.newMavenBuild()
-    // rtMaven.opts = '-Xms1024m -Xmx4096m'
-    // rtMaven.resolver server: server, releaseRepo: 'virtual-repo', snapshotRepo: 'virtual-repo'
-    // rtMaven.deployer server: server, releaseRepo: 'snapshot-repo', snapshotRepo: 'snapshot-repo'
-
-    // stage ("Prepare-Sonar") {        
-    //     echo 'Ping SonarQube ...'
-    //     try{
-    //         retry(10) {
-    //             sh script: 'echo jenkins | sudo -S nc -zv localhost 9000 && echo jenkins | sudo -S nc -zv localhost 9092'
-    //         }
-    //     } catch (error) {
-    //         sh 'echo Start SonarQube ...'
-    //         sh 'echo jenkins | sudo -S /opt/sonarqube/bin/linux-x86-64/sonar.sh start'
-    //     } 
-        
-    //     timeout(time: 600, unit: 'SECONDS') {
-    //         waitUntil {
-    //             echo 'Waiting for SonarQube to start ...'
-    //             def result = sh script: 'echo jenkins | sudo -S netstat -tulnp | egrep \'9000|9092\'', returnStatus: true
-    //             return (result == 0);
-    //         }
-    //     }
-    // } 
-    
     stage('Run-Sonar') {     
         echo 'Run sonar:sonar ...'
 	
@@ -332,6 +305,32 @@ node("PfMachine-jm") {
         // Promote build
         server.promote promotionConfig
     }
+}
+
+// QA, UAT, ... nodes (e.g. EC2 instances, local machines, etc)
+echo 'Running in QA node ...'
+echo 'Running in UAT node ...'
+
+echo 'Promoting application from STAGING to RELEASE ...'
+stage("Promote to release"){
+    def server = Artifactory.server('artifactory')
+    def promotionConfig = [
+        // Mandatory parameters
+        'buildName'          : 'test-job2',
+        'buildNumber'        : BUILD_NUMBER,
+        'targetRepo'         : 'release-repo',
+
+        // Optional parameters
+        'comment'            : 'Promoting to release ....',
+        'sourceRepo'         : 'staging-repo',
+        'status'             : 'Release',
+        'includeDependencies': false,
+        'copy'               : true,
+        'failFast'           : true
+    ]
+
+    // Promote build
+    server.promote promotionConfig
 }
 
 
