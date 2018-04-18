@@ -8,6 +8,9 @@
             <h2>
                 My first Spring MCV app ...<br/><br/>
             </h2>
+            <h2>
+                Thanks Mukesh Das ...<br/><br/>
+            </h2>
             <h3>
                 <a href="hello.html">Click here to see the hello world message ... </a>
             </h3>

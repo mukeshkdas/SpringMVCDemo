@@ -30,30 +30,46 @@ parallel UnitTests:{
     node ("TestMachine-ut") {
             echo 'Hello TestMachine-ut ...'
             //we can also use: withEnv(['M2_HOME=/usr/share/maven', 'JAVA_HOME=/usr']) {}
+            env.MAVEN_HOME = '/usr/share/maven'
             env.M2_HOME = '/usr/share/maven'
             env.JAVA_HOME = '/usr'	 
 
-            stage('Run-ut') {           
-                 echo 'Unstash the project source code ...'
-                 unstash 'SOURCE_CODE'	                                                       
-                                
-                // echo 'Run the unit tests ...'
-                // sh "'${M2_HOME}/bin/mvn' clean test"   
+            echo 'Preparing Artifactory to resolve dependencies ...'          
+            def server = Artifactory.server('artifactory')       
+            def rtMaven = Artifactory.newMavenBuild()
+            rtMaven.opts = '-Xms1024m -Xmx4096m'
+            rtMaven.resolver server: server, releaseRepo: 'virtual-repo', snapshotRepo: 'virtual-repo'
 
-                echo 'Run the unit tests (and Jacoco) ...'
-                sh "'${M2_HOME}/bin/mvn' clean test-compile jacoco:prepare-agent test -Djacoco.destFile=target/jacoco.exec"   
-                //rtMaven.run pom: 'pom.xml', goals: 'clean test-compile jacoco:prepare-agent test -Djacoco.destFile=target/jacoco.exec'
-
-                echo 'Run the Jacoco code coverage report for unit tests ...'
-                step([$class: 'JacocoPublisher', canComputeNew: false, defaultEncoding: '', healthy: '', 
-                        pattern: '**/target/jacoco.exec', unHealthy: ''])
-			
-                echo 'Stash Jacoco-ut exec ...'
-                stash includes: '**/target/jacoco.exec', name: 'JACOCO_UT' 
+            stage('Run-ut') {
+                try{		
             
-                 echo 'jUnit report (surefire) ...'
-                 junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-                // currentBuild.result='SUCCESS'
+                    echo 'Unstash the project source code ...'
+                    unstash 'SOURCE_CODE'	                                                       
+                                    
+                    // echo 'Run the unit tests ...'
+                    // sh "'${M2_HOME}/bin/mvn' clean test"   
+
+                    echo 'Run the unit tests (and Jacoco) ...'
+                    //sh "'${M2_HOME}/bin/mvn' clean test-compile jacoco:prepare-agent test -Djacoco.destFile=target/jacoco.exec"   
+                    rtMaven.run pom: 'pom.xml', goals: 'clean test-compile jacoco:prepare-agent test -Djacoco.destFile=target/jacoco.exec'
+
+                    echo 'Run the Jacoco code coverage report for unit tests ...'
+                    step([$class: 'JacocoPublisher', canComputeNew: false, defaultEncoding: '', healthy: '', 
+                            pattern: '**/target/jacoco.exec', unHealthy: ''])
+                
+                    echo 'Stash Jacoco-ut exec ...'
+                    stash includes: '**/target/jacoco.exec', name: 'JACOCO_UT' 
+                
+                    echo 'jUnit report (surefire) ...'
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                    currentBuild.result='SUCCESS'
+                }catch (any){
+                    currentBuild.result='FAILURE'
+                    step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: 'sample@org.com', sendToIndividuals: false])
+                    throw any
+                } finally {                
+                    // ...
+                }
             }
     }
 },
