@@ -316,7 +316,7 @@ node("PfMachine-jm") {
         def server = Artifactory.server('artifactory')
         def promotionConfig = [
             // Mandatory parameters
-        'buildName'          : 'project',
+        'buildName'          : 'test-job2',
         'buildNumber'        : BUILD_NUMBER,
         'targetRepo'         : 'staging-repo',
 
