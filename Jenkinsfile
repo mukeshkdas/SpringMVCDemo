@@ -287,4 +287,62 @@ stage("Promote to release"){
     server.promote promotionConfig
 }
 
+parallel DeployInProd:{	
+    node("ProdMachine-pd") {
 
+        stage("Start-Payara") {    
+
+            echo 'Ping Payara Server ...'
+            try{
+                retry(5) {
+                    sh script: 'echo jenkins | sudo -S nc -zv localhost 8080 && echo jenkins | sudo -S nc -zv localhost 4848'
+                }
+            } catch (error) {
+                sh 'echo Start Payara Server ...'
+                sh 'echo jenkins | sudo -S /opt/payara41/bin/asadmin start-domain'
+            } 
+		                   
+        }
+    
+        stage ("Download-WAR") {
+            echo 'Download the application WAR ...'
+        
+            def downloadWAR = """{
+            "files": [{
+                "pattern": "release-repo/javaee/SpringMVCDemo/${BN}/*.war",
+                "target": "war/"
+            }]
+        }"""
+        
+            def server = Artifactory.server('artifactory')
+            server.download(downloadWAR)
+        }
+	
+	stage ("Deploy-WAR") {
+            echo 'Rename the WAR as SpringMVCDemo ...'
+            sh "echo jenkins | sudo -S mv ${WORKSPACE}/war/javaee/SpringMVCDemo/${BN}/SpringMVCDemo-${BN}.war ${WORKSPACE}/war/javaee/SpringMVCDemo/${BN}/SpringMVCDemo.war"
+			
+            echo 'Deploy the application WAR in Payara server ...'
+            sh "echo jenkins | sudo -S cp -f ${WORKSPACE}/war/javaee/SpringMVCDemo/${BN}/SpringMVCDemo.war /opt/payara41/glassfish/domains/domain1/autodeploy"
+        }
+    }
+},
+DeployReleaseInGit:{
+    node ("master") {
+        stage('Push-To-Git'){
+            echo 'Push new branch to release ...'
+            
+            sh 'git config --global user.email "mukeshk_das@infosys.com"'
+            sh 'git config --global user.name "mukeshkdas"'
+            sh 'git rm -r --cached Jenkinsfile'
+            sh 'git add .'
+            sh 'git commit -a -m "Release candidate"'
+            retry(5) {
+                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'GitHubUP', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]){                
+                    sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/mukeshkdas/SpringMVCDemo.git release_${BN}"
+                }
+            }
+        }  
+    }
+},
+failFast: false
